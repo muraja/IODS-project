@@ -1,4 +1,4 @@
-# Insert chapter 2 title here
+# Linear Regression & Model Validation
 
 *Describe the work you have done this week and summarize your learning.*
 
@@ -10,23 +10,23 @@
 date()
 ```
 
-Here we go again...
-
 #### The data
 
 ```{r}
 # loading the dataset
+library(tidyverse)
 l14 <- read_csv("C:/Users/SM/Documents/IODS-project/data/learning2014.csv")
-
+# inspecting the data
+l14 # viewing the data table
 dim(l14) # dimensions of the dataset
 str(l14) # structure of the dataset
 ```
 
-The dataset has 7 variables, one of which is categorical (gender) and 6 of which are numerical. The variables "deep", "stra" and "surf" refer to learning methods. The variable "points" refer to exam score, which is the outcome variable of this dataset.
+This dataset has 7 variables, one of which is categorical (gender) and 6 of which are numerical. The variables *deep*, *stra* and *surf* refer to learning methods. The variable *points* refer to exam score, which is the outcome variable of this dataset.
 
 #### Graphical overview
 
-Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)
+> *Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)*
 
 ```{r}
 library(GGally)
@@ -36,33 +36,33 @@ library(ggplot2)
 p <- ggpairs(l14, 
              mapping = aes(col = gender, alpha = 0.3), 
              lower = list(combo = wrap("facethist", bins = 20)))
-
-# drawing the plot
 p
 
 # summary of the variable data
 summary(l14)
 ```
 
-Attitude is quite heavily correlated with points.
+Attitude is correlated with points.
 
-*Choose three variables as explanatory variables and fit a regression model where exam points is the target (dependent, outcome) variable. Show a summary of the fitted model and comment and interpret the results. Explain and interpret the statistical test related to the model parameters. If an explanatory variable in your model does not have a statistically significant relationship with the target variable, remove the variable from the model and fit the model again without it. (0-4 points)*
+#### Regression model
 
-As we could see from the earlier graph p, the strongest correlations with points are with attitude, stra and surf so I'll choose them as the 3 explanatory variables.
+> *Choose three variables as explanatory variables and fit a regression model where exam points is the target (dependent, outcome) variable. Show a summary of the fitted model and comment and interpret the results. Explain and interpret the statistical test related to the model parameters. If an explanatory variable in your model does not have a statistically significant relationship with the target variable, remove the variable from the model and fit the model again without it. (0-4 points)*
+
+As we could see from the earlier graph p, the strongest correlations with points are with *attitude*, *stra* and *surf* so I'll choose them as the 3 explanatory variables.
 
 ```{r}
 model1 <- lm(points ~ attitude + stra + surf, data = l14)
 summary(model1)
 ```
 
-Attitude is the only variable that has a statistically significant relationship with the target variable "points". I'll remove the variable with the lowest t-score, surf, from the model.
+Attitude is the only variable that has a statistically significant relationship with the target variable *points*. I'll remove the variable with the lowest t-score, *surf*, from the model.
 
 ```{r}
 model2 <- lm(points ~ attitude + stra, data = l14)
 summary(model2)
 ```
 
-The t-score of stra is still 0.08927, so removing it from the model.
+The t-score of *stra* is still 0.08927, so I'm removing it from the model.
 
 ```{r}
 model3 <- lm(points ~ attitude, data = l14)
@@ -71,18 +71,18 @@ summary(model3)
 
 Conclusion:
 
-*Using a summary of your fitted model, explain the relationship between the chosen explanatory variables and the target variable (interpret the model parameters). Explain and interpret the multiple R-squared of the model. (0-3 points)*
+> *Using a summary of your fitted model, explain the relationship between the chosen explanatory variables and the target variable (interpret the model parameters). Explain and interpret the multiple R-squared of the model. (0-3 points)*
 
-The higher the attitude points, ie. the more positive attitude towards learning?, the higher exam points can be expected. Attitude explains about 19 % of the variation of exam points.
+The higher the *attitude* score, ie. the more positive attitude towards learning?, the higher exam points can be expected. *Attitude* explains about 19 % of the variation of exam *points*. It's noteworthy that r^2^ didn't change much in removing the other explanatory variables: with 3 variables it was less than 0.02 higher.
 
-*Produce the following diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage. Explain the assumptions of the model and interpret the validity of those assumptions based on the diagnostic plots. (0-3 points)*
+#### Diagnostic plots
+
+> *Produce the following diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage. Explain the assumptions of the model and interpret the validity of those assumptions based on the diagnostic plots. (0-3 points)*
 
 ```{r}
-# residual vs fitted values
+par(mfrow = c(2,2))
+model3 %>% plot(which = c(1,2,5))
 
-# normal QQplot
-
-# residuals vs leverage
 ```
 
 Assumptions of the model:

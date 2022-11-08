@@ -1,4 +1,4 @@
-# title: IODS2022, Assignment 2, Data Wrangling
+# description: IODS2022, Assignment 2, Data Wrangling
 # author: Sami Muraja
 # date: 2022-11-08
 

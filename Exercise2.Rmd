@@ -701,14 +701,8 @@ example: `c(1,2,3)`.
 my_model2 <- lm(points ~ attitude + stra, data = learning2014)
 
 # draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5
-
-plot(my_model2) + par(mfrow = c(2,2))
-
-my_model2 %>% 
-  par(mfrow = c(2,2)) + # can't get this par() to work
-  plot()
-  
-
+par(mfrow = c(2,2))
+plot(my_model2, which = c(1,2,5)) 
 ```
 
 ## 2.12 Making predictions
