@@ -1,14 +1,14 @@
+---
+---
+---
+
 # Linear Regression & Model Validation
-
-*Describe the work you have done this week and summarize your learning.*
-
--   Describe your work and results clearly.
--   Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
--   Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
 
 ```{r}
 date()
 ```
+
+This week I practiced linear regression and studied its assumptions and their validation via diagnostic plots to better understand how it works and how it should be used correctly. Here I present the data used, graphs for understanding the data, regression model summaries, and finally, diagnostic plots for validating the use of the model.
 
 #### The data
 
@@ -16,6 +16,7 @@ date()
 # loading the dataset
 library(tidyverse)
 l14 <- read_csv("C:/Users/SM/Documents/IODS-project/data/learning2014.csv")
+
 # inspecting the data
 l14 # viewing the data table
 dim(l14) # dimensions of the dataset
@@ -24,9 +25,9 @@ str(l14) # structure of the dataset
 
 This dataset has 7 variables, one of which is categorical (gender) and 6 of which are numerical. The variables *deep*, *stra* and *surf* refer to learning methods. The variable *points* refer to exam score, which is the outcome variable of this dataset.
 
-#### Graphical overview
+Next, let's plot a graph to better understand the data.
 
-> *Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)*
+#### Graphical overview
 
 ```{r}
 library(GGally)
@@ -37,16 +38,16 @@ p <- ggpairs(l14,
              mapping = aes(col = gender, alpha = 0.3), 
              lower = list(combo = wrap("facethist", bins = 20)))
 p
+```
 
+From the graph we learn that *attitude* is moderately correlated with *points*, whereas the correlations of the other variables with *points* are very weak. The demography of the sample is young and mostly female. The correlation between learning strategy variables *deep* and *surf* is large enough that one should beware of it if including both variables in the same linear regression model as collinearity can make the coefficients unstable.
+
+```{r}
 # summary of the variable data
 summary(l14)
 ```
 
-Attitude is correlated with points.
-
 #### Regression model
-
-> *Choose three variables as explanatory variables and fit a regression model where exam points is the target (dependent, outcome) variable. Show a summary of the fitted model and comment and interpret the results. Explain and interpret the statistical test related to the model parameters. If an explanatory variable in your model does not have a statistically significant relationship with the target variable, remove the variable from the model and fit the model again without it. (0-4 points)*
 
 As we could see from the earlier graph p, the strongest correlations with points are with *attitude*, *stra* and *surf* so I'll choose them as the 3 explanatory variables.
 
@@ -55,36 +56,42 @@ model1 <- lm(points ~ attitude + stra + surf, data = l14)
 summary(model1)
 ```
 
-Attitude is the only variable that has a statistically significant relationship with the target variable *points*. I'll remove the variable with the lowest t-score, *surf*, from the model.
+*Attitude* is the only variable that has a statistically significant relationship with the target variable *points*. I'll remove the variable with the lowest t-score, *surf*, from the model.
 
 ```{r}
 model2 <- lm(points ~ attitude + stra, data = l14)
 summary(model2)
 ```
 
-The t-score of *stra* is still 0.08927, so I'm removing it from the model.
+The random probability of the t-score of *stra* is still 0.08927, so I'm removing it from the model as well.
 
 ```{r}
 model3 <- lm(points ~ attitude, data = l14)
 summary(model3)
 ```
 
-Conclusion:
-
-> *Using a summary of your fitted model, explain the relationship between the chosen explanatory variables and the target variable (interpret the model parameters). Explain and interpret the multiple R-squared of the model. (0-3 points)*
-
-The higher the *attitude* score, ie. the more positive attitude towards learning?, the higher exam points can be expected. *Attitude* explains about 19 % of the variation of exam *points*. It's noteworthy that r^2^ didn't change much in removing the other explanatory variables: with 3 variables it was less than 0.02 higher.
+The higher the *attitude* score, ie. the more positive attitude towards learning, the higher exam points can be expected. The multiple R^2^ is 0.2074, which means that *attitude* explains about 21 % of the variation of exam *points*. It's noteworthy that R^2^ scores didn't change much in removing the other explanatory variables, ie. the model with a single explanatory variable explains almost as much of the variance as a model with three explanatory variables. Therefore we can be confident about removing them.
 
 #### Diagnostic plots
 
-> *Produce the following diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage. Explain the assumptions of the model and interpret the validity of those assumptions based on the diagnostic plots. (0-3 points)*
+The linear regression model has the four following assumptions:
+
+1.  linear relationship between predictors and outcome
+2.  independence of residuals
+3.  normal distribution of residuals
+4.  equal variance of residuals
+
+Next I'm testing these by plotting diagnostic plots: residuals vs fitted values, normal QQ-plot and residuals vs leverage.
 
 ```{r}
 par(mfrow = c(2,2))
 model3 %>% plot(which = c(1,2,5))
-
 ```
 
-Assumptions of the model:
+In the **Residuals vs Fitted** plot the red line is close to the dashed line, so we can interpret that linearity holds pretty well. Heteroscedasticity (change of spread) seems mild.
 
-Interpretations of the validity of the assumptions:
+In the **Q-Q Plot of Residuals** most of the observations are along the straight line, so we can assume that the dataset is normally distributed.
+
+In the **Residuals vs Leverage** plot the leverage refers to how much the coefficients, in this case *attitude*, would change if the observation was removed. The leverages are small and none of the values fall within the cook's distance, so there are no *influential points*. This means that there are no observations that would significantly change the model coefficients if removed.
+
+Based on these diagnostic plots the linear regression model fits the data well.
