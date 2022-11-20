@@ -1,78 +1,121 @@
 # Logistic Regression
 
+### The data
+
 ```{r}
-library(tidyverse); library(ggplot2)
+library(tidyverse); library(ggplot2); library(readr)
 alc <- read_csv("C:/Users/SM/Documents/IODS-project/data/alc.csv")
 colnames(alc)
 ```
 
-Description of the data:
+The data set in use was contains demographic attributes and exam scores in Math and Portuguese of students in two Portuguese schools. You can view the variables above and read more about the data [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance).
 
-1.  The purpose of your analysis is to study the relationships between high/low alcohol consumption and some of the other variables in the data. To do this, choose 4 interesting variables in the data and for each of them, present your personal hypothesis about their relationships with alcohol consumption. **(0-1 point)**
+The purpose of this analysis is to use this data to study the relationships of high and low consumption of alcohol with sex, age, freetime and address. Before the analysis, I present the following hypotheses about these relationships:
 
-    I'm choosing the variables sex, age, freetime and address. My hypotheses about their relationships with alcohol consumption are the following:
+-   sex: I expect more males to have high use of alcohol than females.
 
-    -   sex: males have higher use than females
+-   age: I expect high alcohol use to peak at 18 years old as it's the minimum age for legally selling alcohol outside restaurants in Portugal.
 
-    -   age: I expect alcohol use to peak at 18 when portuguese students can legally buy alcohol
+-   freetime: I expect those with more free time to be more likely to have a high alcohol consumption.
 
-    -   freetime: positive, weak correlation
+-   address: I expect more student living in urban areas to have a high alcohol use than those living in rural areas.
 
-    -   address: students living in urban areas have higher alcohol used due to easier access to events where alcohol is used.
+These hypotheses are not based on any data.
 
-    These hypotheses are not based on any data.
+### Distributions of variables
 
-    ```{r}
+Here I'll visualize the distribution of the variables and their relationship to alcohol use using both graphical and numerical means.
 
-    ```
+```{r}
+# distribution of age
+g_age <- alc %>% ggplot(aes(x = age))
+g_age + geom_bar()
+```
 
-2.  Numerically and graphically explore the distributions of your chosen variables and their relationships with alcohol consumption (use for example cross-tabulations, bar plots and box plots). Comment on your findings and compare the results of your exploration to your previously stated hypotheses. \*\*(0-5 points)
+Just based on the age distribution alone my hypothesis is less plausible to be shown by this data as there is very little students above the age of 18 in this dataset.
 
-    ```{r}
-    # initialize a plot of 'high_use'
-    g2 <- ggplot(data = alc, aes(x = high_use))
+```{r}
+# distribution of sex
+g_sex <- alc %>% ggplot(aes(x = sex))
+g_sex + geom_bar()
+```
 
-    # draw a bar plot of high_use by sex
-    g2 + geom_bar()
+```{r}
+# distribution of address
+g_address <- alc %>% ggplot(aes(x = address))
+g_address + geom_bar()
+```
 
-    # produce summary statistics by group
-    alc %>% group_by(address, high_use) %>% summarise(count = n(), age = mean(age))
+Most of the students live in urban areas.
 
-    # initialize a plot of alc_use and sex
-    g1 <- ggplot(alc, aes(x = alc_use, y = address))
+```{r}
+# distribution of free time
+g_freetime <- alc %>% ggplot(aes(x = freetime))
+g_freetime + geom_bar()
+```
 
-    # define the plot as a boxplot and draw it
-    g1 + geom_boxplot()
+The amount of experienced free time is approximately normal, though skewed to the right.
 
-    # initialize a plot of alc_use and sex
-    g1 <- ggplot(alc, aes(x = alc_use, y = sex))
+```{r}
+# distribution of high alcohol use
+g_high <- ggplot(data = alc, aes(x = high_use))
+g_high + geom_bar()
+```
 
-    # define the plot as a boxplot and draw it
-    g1 + geom_boxplot()
+Quite a lot of students have high alcohol consumption with the used criteria.
 
-    # initialize a plot of high_use and age
-    g2 <- ggplot(alc, aes(x = high_use, y = age))
+```{r}
+# plotting alc_use and sex
+gas <- ggplot(alc, aes(x = alc_use, y = sex))
+gas + geom_boxplot()
+```
 
-    # define the plot as a box plot and draw it
-    g2 + geom_boxplot()
-    ```
+```{r}
+# plotting a plot of high_use and age
+gha <- ggplot(alc, aes(x = high_use, y = age))
+gha + geom_boxplot()
+```
 
-3.  *Use logistic regression to statistically explore the relationship between your chosen variables and the binary high/low alcohol consumption variable as the target variable. Present and interpret a summary of the fitted model. Present and interpret the coefficients of the model as odds ratios and provide confidence intervals for them. Interpret the results and compare them to your previously stated hypothesis. **Hint**: If your model includes factor variables see for example the RHDS book or the first answer of [this stackexchange](http://stats.stackexchange.com/questions/60817/significance-of-categorical-predictor-in-logistic-regression) thread on how R treats and how you should interpret these variables in the model output (or use some other resource to study this). \*\*(0-5 points*
+```{r}
+# plotting alc_use and address
+gaa <- ggplot(alc, aes(x = alc_use, y = address))
+gaa + geom_boxplot()
+```
 
-    ```{r}
+```{r}
+# plotting a plot of high_use and age
+ghf <- ggplot(alc, aes(x = high_use, y = freetime))
+ghf + geom_boxplot()
+```
+
+Next, I'll show numerical summaries split into two tables to limit the number of rows:
+
+```{r}
+# produce summary statistics by group
+alc %>% group_by(address, high_use) %>% summarise(count = n(), age = mean(age), freetime = mean(freetime))
+```
+
+```{r}
+# produce summary statistics by group
+alc %>% group_by(sex, high_use) %>% summarise(count = n(), age = mean(age), freetime = mean(freetime))
+```
+
+Based on these graphs and the summary, those with high alcohol consumption seem to have a little more free time, as I assumed. Those with high alcohol consumption seem a bit older but both groups are below 17 years old on average, contrary to my expectations. Higher proportion of students who live in a rural area have high alcohol consumption compared to those who live in an urban area, contrary to my assumptions. A higher proportion of males have a high alcohol use in comparison to females, as I assumed. As a side note, I find it interesting that females seem to have less free time than males, although the difference isn't large.
+
+### Logistic regression model
+
+Next, I'll explore the relationship between the presented variables using logistic regression.
+
+```{r}
      
-    # find the model with glm()
-    m <- glm(high_use ~ sex + freetime + age + address, data = alc, family = "binomial")
+# creating a logistic regression model
+m <- glm(high_use ~ sex + freetime + age + address, data = alc, family = "binomial")
 
-    # print out a summary of the model
-    summary(m)
+# printing a summary of the model
+summary(m)
+```
 
-    # print out the coefficients of the model
-    coef(m)
-    ```
-
--   Interpretation of the summary:
--   Interpretation of coefficients /OR:
+From this summary I interpret that male sex, higher free time, higher age and living in a rural area are associated with high alcohol consumption. However, only sex and free time are statistically significant explanatory variables for high/low alcohol consumption.
 
 ```{r}
 # compute odds ratios (OR)
@@ -85,79 +128,47 @@ CI <- confint(m) %>% exp
 cbind(OR, CI)
 ```
 
--   compare to hypotheses
+Odds ratio interpretation:
+
+When compared to my hypotheses, the regression model confirms my expectations in terms of sex and free time, but contradicts my expectations with age and address. I don't repeat these in further details as these results align with the observations from the previous section.
+
+### Predictive power of the model
 
 4.  *Using the variables which, according to your logistic regression model, had a statistical relationship with high/low alcohol consumption, explore the predictive power of your model. Provide a 2x2 cross tabulation of predictions versus the actual values and optionally display a graphic visualizing both the actual values and the predictions. Compute the total proportion of inaccurately classified individuals (= the training error) and comment on all the results. Compare the performance of the model with performance achieved by some simple guessing strategy. (0-3 points)*
 
 ```{r}
-
-
 # predict() the probability of high_use
 probabilities <- predict(m, type = "response")
 
-# add the predicted probabilities to 'alc'
-alc <- mutate(alc, probability = probabilities)
-
-# use the probabilities to make a prediction of high_use
-alc <- mutate(alc, prediction = high_use)
-
-# see the last ten original classes, predicted probabilities, and class predictions
-select(alc, address, age, freetime, sex, high_use, probability, prediction) %>% tail(10)
+alc <- alc %>% 
+  mutate(probability = probabilities) %>% 
+  mutate(prediction = probability > .5)
 
 # tabulate the target variable versus the predictions
 table(high_use = alc$high_use, prediction = alc$prediction)
+```
 
+```{r}
 # initialize a plot of 'high_use' versus 'probability' in 'alc'
 g <- ggplot(alc, aes(x = probability, y = high_use))
 
 # define the geom as points and draw the plot
-g + geom_point()
 g + geom_point(aes(col = prediction))
+```
 
-# tabulate the target variable versus the predictions
-table(high_use = alc$high_use, prediction = alc$prediction) 
+```{r}
 table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table %>% addmargins
 
+```
 
+And finally, calculating the training error:
 
+```{r}
 # define a loss function (mean prediction error)
 loss_func <- function(class, prob) {
   n_wrong <- abs(class - prob) > 0.5
   mean(n_wrong)
 }
 
-  # the proportion of false predictions if all subjects had high use
 loss_func(class = alc$high_use, prob = alc$probability)
-  # the proportion of false predictions in the population this prediction is based on!
-```
-
-5.  ***Bonus**: Perform 10-fold cross-validation on your model. Does your model have better test set performance (smaller prediction error using 10-fold cross-validation) compared to the model introduced in the Exercise Set (which had about 0.26 error). Could you find such a model? **(0-2 points to compensate any loss of points from the above exercises)***
-
-```{r}
-# define a loss function (average prediction error)
-loss_func <- function(class, prob) {
-  n_wrong <- abs(class - prob) > 0.5
-  mean(n_wrong)
-}
-
-# compute the average number of wrong predictions in the (training) data
-loss_func(class = alc$high_use, prob = alc$probability)
-
-# K-fold cross-validation
-library(boot)
-cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = nrow(alc))
-
-# average number of wrong predictions in the cross validation
-cv$delta[1]
-
-
-cv2 <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
-cv2$delta
- ?cv.glm
-```
-
-6.  ***Super-Bonus:** Perform cross-validation to compare the performance of different logistic regression models (= different sets of predictors). Start with a very high number of predictors and explore the changes in the training and testing errors as you move to models with less predictors. Draw a graph displaying the trends of both training and testing errors by the number of predictors in the model. **(0-4 points to compensate any loss of points from the above exercises)***
-
-```{r}
-m_all <- glm(high_use ~ address + age + sex + freetime, data = alc, family = "binomial") # add tons of predictors here, then explore, then remove the bad ones
 ```
