@@ -1,0 +1,12 @@
+# Clustering And Classification
+
+```{r}
+date()
+```
+
+### The data
+
+```{r}
+boston <- MASS::Boston
+str(boston)
+```

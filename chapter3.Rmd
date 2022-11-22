@@ -82,12 +82,6 @@ gaa <- ggplot(alc, aes(x = alc_use, y = address))
 gaa + geom_boxplot()
 ```
 
-```{r}
-# plotting a plot of high_use and age
-ghf <- ggplot(alc, aes(x = high_use, y = freetime))
-ghf + geom_boxplot()
-```
-
 Next, I'll show numerical summaries split into two tables to limit the number of rows:
 
 ```{r}
@@ -128,13 +122,11 @@ CI <- confint(m) %>% exp
 cbind(OR, CI)
 ```
 
-Odds ratio interpretation:
+The odds ratio means that e.g. a male is about 2.2 times as likely to have a high use of alcohol. Each unit of free time (1-5) increases the odds of high use by 34 %, each year of age by 19 %. Those living in an urban area are about 0.65 times as likely to have high use of alcohol compared to those living in a rural area.
 
 When compared to my hypotheses, the regression model confirms my expectations in terms of sex and free time, but contradicts my expectations with age and address. I don't repeat these in further details as these results align with the observations from the previous section.
 
 ### Predictive power of the model
-
-4.  *Using the variables which, according to your logistic regression model, had a statistical relationship with high/low alcohol consumption, explore the predictive power of your model. Provide a 2x2 cross tabulation of predictions versus the actual values and optionally display a graphic visualizing both the actual values and the predictions. Compute the total proportion of inaccurately classified individuals (= the training error) and comment on all the results. Compare the performance of the model with performance achieved by some simple guessing strategy. (0-3 points)*
 
 ```{r}
 # predict() the probability of high_use
@@ -147,6 +139,8 @@ alc <- alc %>%
 # tabulate the target variable versus the predictions
 table(high_use = alc$high_use, prediction = alc$prediction)
 ```
+
+From the table we can see that the prediction would be correct 244 + 18 = 262 times and mistaken 15 + 93 = 108 times.
 
 ```{r}
 # initialize a plot of 'high_use' versus 'probability' in 'alc'
@@ -161,6 +155,8 @@ table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table %>% a
 
 ```
 
+In this table we can see the predictions as proportions. For example, using the given variables it can be correctly predicted about 66 % of the time that a student doesn't have a high alcohol consumption, and about 4 percent of time high consumption will be predicted when the alcohol consumption is not high.
+
 And finally, calculating the training error:
 
 ```{r}
@@ -172,3 +168,5 @@ loss_func <- function(class, prob) {
 
 loss_func(class = alc$high_use, prob = alc$probability)
 ```
+
+This means that about 29 % of the predictions made using this model will be mistaken. This is better than random chance, where half the predictions would be mistaken, but neither is this impressive.

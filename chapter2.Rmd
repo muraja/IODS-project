@@ -63,14 +63,14 @@ model2 <- lm(points ~ attitude + stra, data = l14)
 summary(model2)
 ```
 
-The random probability of the t-score of *stra* is still 0.08927, so I'm removing it from the model as well.
+The probability of the t-score of *stra* if the null hypothesis was true is still 0.08927, so I'm removing it from the model as well.
 
 ```{r}
 model3 <- lm(points ~ attitude, data = l14)
 summary(model3)
 ```
 
-The higher the *attitude* score, ie. the more positive attitude towards learning, the higher exam points can be expected. The multiple R^2^ is 0.2074, which means that *attitude* explains about 21 % of the variation of exam *points*. It's noteworthy that R^2^ scores didn't change much in removing the other explanatory variables, ie. the model with a single explanatory variable explains almost as much of the variance as a model with three explanatory variables. Therefore we can be confident about removing them.
+The higher the *attitude* score, ie. the more positive attitude towards learning, the higher exam points can be expected. The multiple R^2^ is 0.1906, which means that *attitude* explains about 19 % of the variation of exam *points*. It's noteworthy that R^2^ scores didn't change much in removing the other explanatory variables, ie. the model with a single explanatory variable explains almost as much of the variance as a model with three explanatory variables. Therefore we can be confident about removing them.
 
 #### Diagnostic plots
 
