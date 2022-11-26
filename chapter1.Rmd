@@ -1,4 +1,4 @@
-# About the project
+## About the project
 
 This is my learning diary for the course Introduction to Open Data Science. I'm expecting to get a better grasp of how to started analyzing data and to learn to write more readable code. I hope that after this course my thoughts will be less all over the place and will instead have a structure of some sort in my mind that helps me tie those thoughts together. You can find my Github repository for this project here: <https://github.com/muraja/IODS-project.git>
 

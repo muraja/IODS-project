@@ -122,7 +122,7 @@ CI <- confint(m) %>% exp
 cbind(OR, CI)
 ```
 
-The odds ratio means that e.g. a male is about 2.2 times as likely to have a high use of alcohol. Each unit of free time (1-5) increases the odds of high use by 34 %, each year of age by 19 %. Those living in an urban area are about 0.65 times as likely to have high use of alcohol compared to those living in a rural area.
+The odds ratio means that e.g. a male is about 2.2 times as likely to have a high use of alcohol. Each unit of free time (1-5) increases the odds of high use by 34 %, each year of age by 19 %. Those living in an urban area are about 0.65 times as likely to have high use of alcohol compared to those living in a rural area. However, the confidence intervals are wide and in the statistically insignificant variables *age* and *address* it includes 1, so the odds ratio values should not be taken literally by any means!
 
 When compared to my hypotheses, the regression model confirms my expectations in terms of sex and free time, but contradicts my expectations with age and address. I don't repeat these in further details as these results align with the observations from the previous section.
 
