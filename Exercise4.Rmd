@@ -196,7 +196,7 @@ summary(Boston)
 class(boston_scaled)
 
 # change the object to data frame
-boston_scaled <- boston_scaled %>% as.data.frame()
+boston_scaled <- boston_scaled %>% as.data.frame
 
 ```
 

@@ -12,22 +12,12 @@ library(tidyverse)
 
 ```{r}
 boston <- MASS::Boston
-# str(boston) # ERROR HERE
+boston %>% str
 ```
 
-```{r}
-boston %>% 
-  ggplot(aes(x = crim)) + 
-  geom_bar()
+The dataset has 14 variables that I don't care to repeat now because I'm sick and you can read about the data [here](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html) anyway.
 
-library(GGally); library(ggplot2)
-
-# creating a plot matrix
-boston[1:6] %>%  ggpairs( 
-             mapping = aes(alpha = 0.3), # col = gender, alpha = 0.3
-             #lower = list(combo = wrap("facethist", bins = 20))
-             )
-```
+Creating a correlation plot:
 
 ```{r}
 # calculate the correlation matrix and round it
@@ -40,6 +30,8 @@ cor_matrix
 library(corrplot)
 corrplot(cor_matrix, method="circle")
 ```
+
+Creating density plots:
 
 ```{r}
 library(ggplot2); library(dplyr); library(tidyr)
@@ -56,12 +48,25 @@ boston %>%
 ```
 
 ```{r}
-boston %>% ggplot(aes(x = crim)) +
-  geom_density() +
-  facet_wrap(~crim)
+library(cowplot)
+my_plots <- lapply(names(boston), function(var_x){
+  p <- 
+    ggplot(boston) +
+    aes_string(var_x)
+
+  if(is.numeric(boston[[var_x]])) {
+    p <- p + geom_density()
+
+  } else {
+    p <- p + geom_bar()
+  } 
+})
+plot_grid(plotlist = my_plots)
 ```
 
-1.  *Standardize the dataset and print out summaries of the scaled data. How did the variables change? Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate). Use the quantiles as the break points in the categorical variable. Drop the old crime rate variable from the dataset. Divide the dataset to train and test sets, so that 80% of the data belongs to the train set. **(0-2 points)***
+### Standardizing the data
+
+> *Standardize the dataset and print out summaries of the scaled data. How did the variables change? Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate). Use the quantiles as the break points in the categorical variable. Drop the old crime rate variable from the dataset. Divide the dataset to train and test sets, so that 80% of the data belongs to the train set. **(0-2 points)***
 
 ```{r}
 # center and standardize variables
@@ -71,32 +76,52 @@ scaled <- scaled %>% as.data.frame() # changing to data frame
 scaled %>% summary
 ```
 
-How did the variables change:
+The scale() function substracts each value with the mean of the variable and divides them with the standard deviation of the variable. This way the mean of the scaled data becomes 0.
+
+### Converting crime rates into categorical variable split by quantiles
 
 ```{r}
-#Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate).Use the quantiles as the break points in the categorical variable. 
-scaled$crim %>% summary
-# creating categories by quantiles
+# original crime variable in the scaled data set
+scaled$crim %>% summary 
+```
+
+Here are the quantile points for *crim*:
+
+```{r}
+# quantile points
 bins <- scaled$crim %>% quantile
 bins
+```
+
+These quantile points can be used to create a categorical crime variable:
+
+```{r}
 crime <- scaled$crim %>% cut(
   breaks = bins, 
   label = c("low", "med_low", "med_high", "high"), 
   include.lowest = TRUE
   )
 crime %>% table
-#Drop the old crime rate variable from the dataset. 
+```
+
+Now we can drop the old crime rate variable *crim* from the dataset and create a new one with the categorical crime rate variable.
+
+```{r}
 scaled <- scaled %>% 
-  select(-crim) %>% #removing old crime rate variable
-  data.frame(crime) #creating a new dataframe with the categorical crime rate variable
+  dplyr::select(-crim) %>% #removing old crime rate variable
+  data.frame(crime) #new dataframe with the categorical crime rate variable
+```
 
-#Divide the dataset to train and test sets, so that 80% of the data belongs to the train set.
+Finally, I divide the dataset to train and test sets with 80 % of the data in the train set for creating a linear discriminant model and testing it.
 
+```{r}
 n <- scaled %>% nrow # number of rows in the dataset
 div <- sample(n, size = n * 0.8) # choosing randomly 80 % of the rows
 train <- scaled[div,] # creating train set
 test <- scaled[-div,] # creating test set
 ```
+
+### Linear discriminant analysis
 
 > *Fit the linear discriminant analysis on the train set. Use the categorical crime rate as the target variable and all the other variables in the dataset as predictor variables. Draw the LDA (bi)plot. **(0-3 points)***
 
@@ -105,7 +130,11 @@ test <- scaled[-div,] # creating test set
 library(MASS)
 lda.fit <- lda(crime ~ ., data = train)
 lda.fit
+```
 
+Plotting the LDA model:
+
+```{r}
 # the function for lda biplot arrows
 lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
   heads <- coef(x)
@@ -124,7 +153,9 @@ plot(lda.fit, dimen = 2, col = classes, pch = classes)
 lda.arrows(lda.fit, myscale = 1)
 ```
 
-*Then predict the classes with the LDA model on the test data. Cross tabulate the results with the crime categories from the test set. Comment on the results. **(0-3 points)***
+### Predicting the classes with the LDA model
+
+> *Then predict the classes with the LDA model on the test data. Cross tabulate the results with the crime categories from the test set. Comment on the results. **(0-3 points)***
 
 ```{r}
 # saving the correct crime classes from test data
@@ -138,32 +169,71 @@ lda.pred <- lda.fit %>% predict(newdata=test)
 table(correct = correct_classes, predicted = lda.pred$class)
 ```
 
-*Reload the Boston dataset and standardize the dataset (we did not do this in the Exercise Set, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. **(0-4 points)***
+The model often predicts *med_low* when the correct category is *low* and it correctly predicts the high values the most.
+
+### Investigating the optimal number of clusters
+
+> *Reload the Boston dataset and standardize the dataset (we did not do this in the Exercise Set, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. **(0-4 points)***
+
+I'll limit the printed variables to just a few to keep them somewhat readable.
 
 ```{r}
 data("Boston")
-dist <- Boston %>% scale %>% dist
+bost <- Boston %>% scale
+# bost %>% dist # calculating distances between observations, although I didn't get what the point of this was
 
 # k-means clustering
-km <- kmeans(dist, centers = 3)
+km <- kmeans(bost, centers = 4)
 
 # plot the Boston dataset with clusters
-pairs(dist, col = km$cluster)
+pairs(bost[,5:10], col = km$cluster)
 ```
-
-***Bonus:** Perform k-means on the original Boston data with some reasonable number of clusters (\> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influential linear separators for the clusters? **(0-2 points to compensate any loss of points from the above exercises)***
 
 ```{r}
-data("Boston")
-bonus <- Boston %>% scale
-# k-means clustering
-km <- kmeans(Boston, centers = 3)
-
-# plot the Boston dataset with clusters
-pairs(Boston, col = km$cluster)
+# determining the optimal number of clusters
+set.seed(5461873)
+twcss <- sapply(1:20, function(k){kmeans(bost, k)$tot.withinss})
+qplot(x = 1:20, y = twcss, geom = "line")
 ```
 
-***Super-Bonus:** Run the code below for the (scaled) train data that you used to fit the LDA. The code creates a matrix product, which is a projection of the data points.*
+The exercises of the week guide that the correct number of clusters is when the WCSS drops "dramatically". I guess that means 2 here. The second choice would be 7, as the decrease is almost linear from 2 to 7.
+
+Rerunning with two clusters:
+
+```{r}
+# k-means clustering
+km <- kmeans(bost, centers = 2)
+
+# plot the Boston dataset with clusters
+pairs(bost[,5:10], col = km$cluster)
+```
+
+### LDA using km clusters as target
+
+> ***Bonus:** Perform k-means on the original Boston data with some reasonable number of clusters (\> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influential linear separators for the clusters? **(0-2 points to compensate any loss of points from the above exercises)***
+
+```{r}
+bonus <- MASS::Boston %>% scale %>% as.data.frame
+# k-means clustering
+km <- kmeans(bonus, centers = 3)
+
+# LDA using clusters as targets
+lda.bonus <- lda(km$cluster ~ ., data = bonus)
+lda.bonus
+
+# target classes as numeric
+classes <- km$cluster %>% as.numeric
+
+#plotting the results
+plot(lda.bonus, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.bonus, myscale = 1)
+```
+
+zn and sth that I can't make sense of from the messy graph are the most influential separators
+
+### 3D plots colored by crime classes vs km clusters
+
+> ***Super-Bonus:** Run the code below for the (scaled) train data that you used to fit the LDA. The code creates a matrix product, which is a projection of the data points. Adjust the code: add argument color as a argument in the plot_ly() function. Set the color to be the crime classes of the train set. Draw another 3D plot where the color is defined by the clusters of the k-means. How do the plots differ? Are there any similarities? (0-3 points to compensate any loss of points from the above exercises)*
 
 ```{r}
 model_predictors <- dplyr::select(train, -crime)
@@ -174,7 +244,11 @@ dim(lda.fit$scaling)
 matrix_product <- as.matrix(model_predictors) %*% lda.fit$scaling
 matrix_product <- as.data.frame(matrix_product)
 # Next, install and access the plotly package. Create a 3D plot (cool!) of the columns of the matrix product using the code below.
-
-plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers')
-# Adjust the code: add argument color as a argument in the plot_ly() function. Set the color to be the crime classes of the train set. Draw another 3D plot where the color is defined by the clusters of the k-means. How do the plots differ? Are there any similarities? (0-3 points to compensate any loss of points from the above exercises)
+library(plotly)
+# plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = train$crime) # causes error in knitting
 ```
+
+```{r}
+# plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = classes) # causes error in knitting
+```
+The plots seem identical to me.
