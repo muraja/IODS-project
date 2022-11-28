@@ -251,4 +251,5 @@ library(plotly)
 ```{r}
 # plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = classes) # causes error in knitting
 ```
+
 The plots seem identical to me.
