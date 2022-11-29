@@ -194,6 +194,8 @@ km <- kmeans(bost, centers = 2)
 pairs(bost[,5:10], col = km$cluster)
 ```
 
+The clusters seem to have less overlap and be quite separate from each other, so I interpret that reducing the clusters was a good thing.
+
 ### LDA using km clusters as target
 
 > ***Bonus:** Perform k-means on the original Boston data with some reasonable number of clusters (\> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influential linear separators for the clusters? **(0-2 points to compensate any loss of points from the above exercises)***
