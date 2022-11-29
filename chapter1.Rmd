@@ -5,8 +5,3 @@ This is my learning diary for the course Introduction to Open Data Science. I'm 
 I find the course book [R for Health Data Science](https://argoshare.is.ed.ac.uk/healthyr_book/) readable and useful. I noticed having a tendency to read too closely, wanting to make sure I understand all the code instead of just skimming the first chapters quickly through, so I took longer with the first chapters than I intended. I think it it might have been more time-efficient to skim them through quickly now and coming back later when doing the exercises, but it still felt helpful: it clarified some of the confusion I've experienced when facing errors in my code (even those I resolved), and I got ideas for writing better, more readable and concise code. I've found dplyr functions a bit more confusing than traditional R when they have come up in forum answers, but reading through the first chapters made me more comfortable with this style. Now I'm curious to learn more and to get to write some new code.
 
 I'm used to writing in markdown and I'm quite fond of it, so testing Rmd has been very pleasing. I enjoyed starting the course with the exercise set in Rmd format. Having learned how Github works, I realized that when I need or want to share my writing, writing in RStudio and publishing in Github could be a very handy and familiar way of doing that - even if it was just text. I wish I realized to do that earlier. Rmd also makes writing *about* code quite delightful as pleasantly readable text can be written with embedded working code blocks. I should have tried it sooner! More ways to avoid using Word are always welcome.
-
-```{r}
-date()
-
-```

@@ -1,9 +1,5 @@
 # Linear Regression & Model Validation
 
-```{r}
-date()
-```
-
 This week I practiced linear regression and studied its assumptions and their validation via diagnostic plots to better understand how it works and how it should be used correctly. Here I present the data used, graphs for understanding the data, regression model summaries, and finally, diagnostic plots for validating the use of the model.
 
 #### The data

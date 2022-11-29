@@ -42,6 +42,6 @@ gii <- gii %>% rename(
 # Creating 2 new variables to gii: the ratio of 2nd education and labour force participation by gender
 gii <- gii %>% mutate(eduRatio = eduF/eduM) %>% mutate(workRatio = workF/workM)
 
-#Join together the two datasets using the variable Country as the identifier. Keep only the countries in both data sets (Hint: inner join). The joined data should have 195 observations and 19 variables. Call the new joined data "human" and save it in your data folder. (1 point)
+# Joining the datasets using country as the identifier
 human <- inner_join(gii, hd, by = "country")
 write_csv(human, "data/human.csv")

@@ -1,10 +1,6 @@
 # Clustering And Classification
 
 ```{r}
-date()
-```
-
-```{r}
 library(tidyverse)
 ```
 
@@ -31,21 +27,9 @@ library(corrplot)
 corrplot(cor_matrix, method="circle")
 ```
 
-Creating density plots:
+Here larger circle size and darker color mean higher correlations, with red meaning negative correlation and blue positive. To point out some correlations, lower status of the population (lstat) has high negative correlation with median value of owner-occupied homes (medv), property tax rate (tax) correlates positively with accessibility to radial high ways (rad) and with the proportion of non-retail business acres per town (indus), and distances to to Boston employment centers (dis) correlate negatively with nitrogen oxides concentration (nox).
 
-```{r}
-library(ggplot2); library(dplyr); library(tidyr)
-
-boston %>% 
- # select(crim, lstat, indus, nox, ptratio, rm, tax, dis, age) %>% 
-  gather(obs, val, -crim) %>% 
-  ggplot(aes(val, crim, color=obs, fill=obs)) + 
-  geom_smooth(method="lm", se=TRUE) +
-  geom_point() +
-  facet_wrap(~obs, scales="free_x") +
-  scale_color_discrete(guide=FALSE) + 
-  scale_fill_discrete(guide=FALSE)
-```
+Next some density plots:
 
 ```{r}
 library(cowplot)
@@ -64,6 +48,8 @@ my_plots <- lapply(names(boston), function(var_x){
 plot_grid(plotlist = my_plots)
 ```
 
+The density plots show that most cities have a low crime rate but it can be tens of times higher in the high crime rate cities.
+
 ### Standardizing the data
 
 > *Standardize the dataset and print out summaries of the scaled data. How did the variables change? Create a categorical variable of the crime rate in the Boston dataset (from the scaled crime rate). Use the quantiles as the break points in the categorical variable. Drop the old crime rate variable from the dataset. Divide the dataset to train and test sets, so that 80% of the data belongs to the train set. **(0-2 points)***
@@ -76,7 +62,7 @@ scaled <- scaled %>% as.data.frame() # changing to data frame
 scaled %>% summary
 ```
 
-The scale() function substracts each value with the mean of the variable and divides them with the standard deviation of the variable. This way the mean of the scaled data becomes 0.
+The scale() function substracts each value with the mean of the variable and divides them with the standard deviation of the variable. This way the mean of the scaled data becomes 0 and the variation better comparable.
 
 ### Converting crime rates into categorical variable split by quantiles
 
