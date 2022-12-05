@@ -1,0 +1,102 @@
+# Dimensionality Reduction Techniques
+
+## Human
+
+> Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)
+
+```{r}
+library(tidyverse)
+human <- read_csv("data/human.csv")
+human %>% summary
+human %>% str
+```
+
+```{r}
+library(GGally)
+human %>% ggpairs
+```
+
+```{r}
+library(corrplot)
+cor(human) %>% corrplot(title = "Correlations")
+```
+
+### PCA on non-standardized data
+
+> Perform principal component analysis (PCA) on the raw (non-standardized) human data. Show the variability captured by the principal components. Draw a biplot displaying the observations by the first two principal components (PC1 coordinate in x-axis, PC2 coordinate in y-axis), along with arrows representing the original variables. (0-2 points)
+
+```{r}
+pca <- prcomp(human)
+pca
+
+pca %>% biplot(cex = c(0.7, 1))
+```
+
+### PCA on standardized data
+
+> Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomena they relate to. (0-4 points)
+
+```{r}
+human_std <- scale(human)
+pca_std <- prcomp(human_std)
+pca_std
+
+pca_std %>% biplot(
+  main = "PCA on standardized data", 
+  cex = c(0.7, 1), 
+  col = c("black","red"),
+  sub = "daaamn broh")
+```
+
+> Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
+
+PC1 : all others
+
+PC2: repre, workRatio
+
+## Tea
+
+> Load the tea dataset from the text file <https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv> where the column separator is a comma and the first row includes the column names).
+
+```{r}
+tea <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", sep = ",", header = T) # doesn't "first row includes the column names" mean header = F tho? 
+```
+
+> Explore the data briefly: look at the structure and the dimensions of the data. Use View(tea) to browse its contents. As you see, all variables are categorical. Convert them explicitly to factors, for example: tea\$sugar \<- factor(tea\$sugar) and then visualize the data.
+
+```{r fig.width=10, fig.height=20}
+str(tea) # before conversion
+tea[sapply(tea, is.character)] <- lapply(tea[sapply(tea, is.character)], as.factor) # converting characters to factors
+str(tea) # after conversion
+
+library(ggplot2)
+tea %>% dplyr::select(-age) %>% # removing age because it's an integer
+  pivot_longer(cols = everything()) %>% 
+  ggplot(aes(value)) + 
+  facet_wrap("name", scales = "free") + 
+  geom_bar() +
+  labs(title = "Frequency of the variables") + # naming the plot
+  theme(axis.text.x = element_text(size = 11, angle = 45, hjust = 1),
+          # adjusting variable label size, angle and placement
+        strip.text = element_text(size = 11, face = "bold"), 
+          # adjusting titles of the plots (strips)
+        plot.title = element_text(size = 22)) 
+          # adjusting title size
+```
+
+### Multiple Correspondence Analysis
+
+> Use Multiple Correspondence Analysis (MCA) on the tea data (or on just certain columns of the data, it is up to you!). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots (0-4 points)
+
+```{r}
+library(FactoMineR)
+mca <- tea %>% select(-age) %>% MCA
+
+summary(mca)
+
+mca %>% plot(
+  invisible = c("ind"),
+  habillage = "quali",
+  graph.type = "classic"
+)
+```

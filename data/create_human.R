@@ -19,19 +19,19 @@ gii %>% summary
 # renaming the variable names to be shorter
 hd %>% names
 hd <- hd %>% rename(
-  "rank" = "HDI Rank",                          
+  "HDI.r" = "HDI Rank",                          
   "country" = "Country",                            
   "HDI" = "Human Development Index (HDI)",      
-  "lifeexp" = "Life Expectancy at Birth",        
-  "expedu" = "Expected Years of Education",           
-  "meanedu" = "Mean Years of Education",           
+  "life.exp" = "Life Expectancy at Birth",        
+  "exp.edu" = "Expected Years of Education",           
+  "mean.edu" = "Mean Years of Education",           
   "GNI" = "Gross National Income (GNI) per Capita",
   "gni-hdi" = "GNI per Capita Rank Minus HDI Rank"
 )
 
 gii %>% names
 gii <- gii %>% rename(
-  "rank" = "GII Rank",                    
+  "GII.r" = "GII Rank",                    
   "country" = "Country",
   "GII" = "Gender Inequality Index (GII)",
   "momdeath" = "Maternal Mortality Ratio",
@@ -54,7 +54,8 @@ human <- inner_join(gii, hd, by = "country")
 
 #Load the ‘human’ data into R. Explore the structure and the dimensions of the data and describe the dataset briefly, assuming the reader has no previous knowledge of it (this is now close to the reality, since you have named the variables yourself). (0-1 point)
 human %>% str
-  # comments:
+human %>% names
+  #  The data contains 19 variables and 195 observations. 
 
 #Mutate the data: transform the Gross National Income (GNI) variable to numeric (using string manipulation). Note that the mutation of 'human' was NOT done in the Exercise Set. (1 point)
 human$GNI %>% str # currently integrer
