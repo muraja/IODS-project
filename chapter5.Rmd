@@ -1,6 +1,6 @@
 # Dimensionality Reduction Techniques
 
-## Human
+## Human data
 
 > Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)
 
@@ -10,6 +10,22 @@ human <- read_csv("data/human.csv")
 human %>% summary
 human %>% str
 ```
+
+The data contains 8 variables and 155 observations.
+
+-   eduFM: ratio of females to males with secondary education
+
+-   workFM: female to male ratio of labor force participation
+
+-   exp.edu: the expected years of education
+
+-   life.exp: life expectancy at birth in years
+
+-   momdeath: maternal mortality ratio
+
+-   teenmom: adolescent birth rate
+
+-   repre: percent representation in parlament
 
 ```{r}
 library(GGally)
@@ -45,16 +61,16 @@ pca_std %>% biplot(
   main = "PCA on standardized data", 
   cex = c(0.7, 1), 
   col = c("black","red"),
-  sub = "daaamn broh")
+  sub = "subtext")
 ```
+
+The results are very different.
 
 > Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
 
-PC1 : all others
+PC2 captures the variables repre and workFM, PC1 differentiates well all the other variables.
 
-PC2: repre, workRatio
-
-## Tea
+## Tea data
 
 > Load the tea dataset from the text file <https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv> where the column separator is a comma and the first row includes the column names).
 

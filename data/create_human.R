@@ -43,7 +43,7 @@ gii <- gii %>% rename(
   "workM" = "Labour Force Participation Rate (Male)" 
 )
 # Creating 2 new variables to gii: the ratio of 2nd education and labour force participation by gender
-gii <- gii %>% mutate(eduRatio = eduF/eduM) %>% mutate(workRatio = workF/workM)
+gii <- gii %>% mutate(eduFM = eduF/eduM) %>% mutate(workFM = workF/workM)
 
 # Joining the datasets using country as the identifier
 human <- inner_join(gii, hd, by = "country")
@@ -63,7 +63,7 @@ human$GNI <- human$GNI %>% as.numeric
 human$GNI %>% str # now numeric
 
 #Exclude unneeded variables: keep only the columns matching the following variable names (described in the meta file above):  "Country", "Edu2.FM", "Labo.FM", "Edu.Exp", "Life.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F" (1 point)
-keep <- c("country", "eduRatio", "workRatio", "expedu", "lifeexp", "GNI", "momdeath", "teenmom", "repre") # repre was supposed to be female specific?
+keep <- c("country", "eduFM", "workFM", "exp.edu", "life.exp", "GNI", "momdeath", "teenmom", "repre")
 human <- human %>% select(keep)
 
 #Remove all rows with missing values (1 point).
@@ -78,3 +78,4 @@ human <- human[1:last,] # saving the data without the last 7 rows
 rownames(human) <- human$country
 human <- human %>% select(-country)
 write_csv(human, "data/human.csv")
+
