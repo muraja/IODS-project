@@ -53,14 +53,21 @@ pca %>% biplot(cex = c(0.7, 1))
 > Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomena they relate to. (0-4 points)
 
 ```{r}
-human_std <- scale(human)
-pca_std <- prcomp(human_std)
-pca_std
+human_std <- scale(human) # standardizing the data
+pca_std <- prcomp(human_std) # performing pca
 
+# creating axis labels
+s <- pca_std %>% summary
+perc <- round(100*s$importance[2, ], digits = 2)
+pc_lab <- paste0(names(perc), " (", perc, "%)")
+
+# plotting 
 pca_std %>% biplot(
   main = "PCA on standardized data", 
   cex = c(0.7, 1), 
   col = c("black","red"),
+  xlab = pc_lab[1], 
+  ylab = pc_lab[2],
   sub = "subtext")
 ```
 
@@ -68,7 +75,7 @@ The results are very different.
 
 > Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
 
-PC2 captures the variables repre and workFM, PC1 differentiates well all the other variables.
+The PC1 explains 53.61 % of the variance and captures well the educational and health-related variables. The PC2 explains 16.24 % of the variance and captures the variables repre and workFM. We can see the same relationships in the correlationplot: the health and educational variables correlate a lot with each other, whereas *repre* and *workFM* do not.
 
 ## Tea data
 
