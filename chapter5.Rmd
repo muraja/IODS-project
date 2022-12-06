@@ -45,7 +45,10 @@ cor(human) %>% corrplot(title = "Correlations")
 pca <- prcomp(human)
 pca
 
-pca %>% biplot(cex = c(0.7, 1))
+summ <- pca %>% summary
+per <- round(100*summ$importance[2, ], digits = 2)
+per_lab <- paste0(names(per), " (", per, "%)")
+pca %>% biplot(cex = c(0.7, 1), xlab = per_lab[1], ylab = per_lab[2])
 ```
 
 ### PCA on standardized data
@@ -71,7 +74,7 @@ pca_std %>% biplot(
   sub = "subtext")
 ```
 
-The results are very different.
+The results are very different. In the non-standardized plot the PC1 explains nearly all the variance, which is caused by the *GNI.* The other variables do not influence the PCs much because of differing scales. The standardized PCA and its plot are a lot more useful as all the variables influence the model.
 
 > Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
 
