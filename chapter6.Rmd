@@ -1,2 +1,186 @@
 # Analysis of Longitudinal Data
 
+Loading the data and transforming categorical variables from numerical into factors
+
+```{r}
+library(tidyverse)
+RatsL <- read_csv("data/RATSL.csv")
+bprsL <- read_csv("data/BPRSL.csv")
+
+RatsL %>% str
+bprsL %>% str
+
+bprsL$treatment <- factor(bprsL$treatment)
+bprsL$subject <- factor(bprsL$subject)
+
+RatsL$ID <- factor(RatsL$ID)
+RatsL$Group <- factor (RatsL$Group)
+
+RatsL %>% str
+bprsL %>% str
+
+RatsL %>% summary
+bprsL %>% summary
+```
+
+The first dataset, RatsL,
+
+The second dataset, bprsL,
+
+### RatsL
+
+plotting
+
+```{r}
+library(ggplot2)
+ggplot(RatsL, aes(x = Time, y = weight, group = ID)) +
+  geom_line(aes(col = Group)) +
+  theme(legend.position = "top") +
+  scale_x_continuous(name = "Time (days)", 
+                     breaks = seq(0, 60, 10)) +
+  scale_y_continuous(name = "Weight (grams)",
+                     limits = c(min(RatsL$weight), max(RatsL$weight)))
+```
+
+std
+
+```{r}
+RatsL <- RatsL %>% 
+  group_by(Time) %>% 
+  mutate(stdprs = scale(weight)) %>% 
+  ungroup
+
+ggplot(RatsL, aes(x = Time, y = stdprs, group = ID)) +
+  geom_line(aes(col = Group)) +
+  theme(legend.position = "top") +
+  scale_x_continuous(name = "Time (days)", 
+                     breaks = seq(0, 60, 10)) +
+  scale_y_continuous(name = "Standardized Weight")
+```
+
+summary
+
+```{r}
+n_r <- 16
+
+RatsLS <- RatsL %>% 
+  group_by(Group, Time) %>% 
+  summarise(mean = mean(weight), se = (sd(weight)/sqrt(n_r))) %>% 
+  ungroup
+
+RatsLS %>% ggplot(
+  aes(x = Time, y = mean, shape = Group, col = Group)) +
+  geom_line() +
+  theme(legend.position = "top") +
+  scale_x_continuous(name = "Time (days)", 
+                     breaks = seq(0, 60, 10)) +
+   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=1) +
+  geom_point(size = 1) +
+  scale_y_continuous(name = "mean(weight) +/- se(weight)")
+```
+
+outlier
+
+```{r}
+outlaw_rat <- RatsL %>% 
+  filter(Time > 1) %>% # removing baseline
+  group_by(ID, Group) %>% 
+  summarise(mean = mean(weight)) %>% 
+  ungroup
+
+outlaw_rat %>% ggplot(
+  aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape = 23, size = 2, fill = "pink") +
+  scale_y_continuous(name = "mean(weight, days 1-64")
+```
+
+Each group has an outlier? although each group is very different from one another AND with only 16 subjects to begin with it seems nuts to me to remove any data... At least group 2 has an outlier. Let's remove them and replot.
+
+```{r}
+outlaw_rat1 <- outlaw_rat %>% filter(mean < 550, 
+                                    mean > 240,
+                                    mean > 500 | Group != 3)
+
+outlaw_rat1 %>% ggplot(
+  aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape = 23, size = 2, fill = "pink") +
+  scale_y_continuous(name = "mean(weight, days 1-64")
+```
+
+t-test
+
+```{r}
+# t.test(mean ~ Group, data = outlaw_rat, var.equal = TRUE) # can't do t-test with 3 groups ofc.. what then?
+```
+
+```{r}
+baseline <- RatsL %>% filter(Time==1) %>% select(weight) %>% as.vector
+
+outlaw_rat2 <- outlaw_rat %>% 
+  mutate(baseline = baseline$weight)
+
+rat_fit <- lm(mean ~ baseline + Group, data = outlaw_rat2)
+
+rat_fit %>% anova
+```
+
+### bprsL
+
+```{r}
+str(bprsL)
+```
+
+```{r}
+bprsL %>% ggplot(
+  aes(x = week, y = bprs, col = subject)) +
+  geom_line() +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") +
+  scale_x_continuous(breaks = seq(0, 8, 1))
+```
+
+liinear model
+
+```{r}
+bprs_reg <- lm(bprs ~ week + treatment, bprsL)
+bprs_reg %>% summary
+```
+
+random intercept model
+
+```{r}
+library(lme4)
+bprs_ref <- lmer(bprs ~ week + treatment + (1 | subject), bprsL, REML = FALSE)
+bprs_ref
+```
+
+```{r}
+bprs_ref1 <- lmer(bprs ~ week + treatment + (week | subject), bprsL, REML = FALSE)
+bprs_ref1 %>% summary
+
+anova(bprs_ref1, bprs_ref)
+
+```
+
+```{r}
+
+bprs_ref2 <- lmer(bprs ~ week * treatment + (week | subject), bprsL, REML = FALSE)
+bprs_ref2 %>% summary
+
+anova(bprs_ref2, bprs_ref1)
+
+```
+
+```{r}
+bprsL$fitted <- fitted(bprs_ref2) 
+
+bprsL %>% ggplot(
+  aes(x = week, y = fitted, group = subject)) +
+  geom_line(aes(col = subject)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") +
+  scale_x_continuous(breaks = seq(0, 8, 1))
+
+```
