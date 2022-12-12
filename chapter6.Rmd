@@ -1,6 +1,6 @@
 # Analysis of Longitudinal Data
 
-Loading the data and transforming categorical variables from numerical into factors
+Loading the data
 
 ```{r}
 library(tidyverse)
@@ -10,26 +10,34 @@ bprsL <- read_csv("data/BPRSL.csv")
 RatsL %>% str
 bprsL %>% str
 
-bprsL$treatment <- factor(bprsL$treatment)
-bprsL$subject <- factor(bprsL$subject)
-
-RatsL$ID <- factor(RatsL$ID)
-RatsL$Group <- factor (RatsL$Group)
-
-RatsL %>% str
-bprsL %>% str
-
 RatsL %>% summary
 bprsL %>% summary
 ```
 
-The first dataset, RatsL,
+There are two datasets for this week's analysis. Both have been converted into long format, hence the *L* in their names. The *RatsL* data has 16 rats (ID) divided into 3 groups (Group) and the weight (weight) of each was measured several times during 64 days (Time).
 
-The second dataset, bprsL,
+In the *bprsL* dataset , short for brief psychiatric rating scale, a test score (bprs) was measured weekly (week) in 20 subjects (subject) per two treatment groups (treatment).
+
+From the summaries we can see that the both datasets include quite a lot of variation.
+
+Transforming categorical variables from numerical into factors:
+
+```{r}
+RatsL$ID <- factor(RatsL$ID)
+RatsL$Group <- factor (RatsL$Group)
+
+bprsL$treatment <- factor(bprsL$treatment)
+bprsL$subject <- factor(bprsL$subject)
+
+RatsL %>% str
+bprsL %>% str
+```
+
+Great, now we can start diving in.
 
 ### RatsL
 
-plotting
+First, plotting RatsL data:
 
 ```{r}
 library(ggplot2)
@@ -42,7 +50,9 @@ ggplot(RatsL, aes(x = Time, y = weight, group = ID)) +
                      limits = c(min(RatsL$weight), max(RatsL$weight)))
 ```
 
-std
+There seems to be an increasing trend in weight in each group, but the groups have notably different starting weights. Group one seems to increase in weight less than groups 2 and 3.
+
+Next, standardizing the data and plotting it:
 
 ```{r}
 RatsL <- RatsL %>% 
@@ -58,16 +68,20 @@ ggplot(RatsL, aes(x = Time, y = stdprs, group = ID)) +
   scale_y_continuous(name = "Standardized Weight")
 ```
 
-summary
+Honestly, I don't know what this adds that we couldn't see from the previous plot.
+
+Moving on to a summary graph:
 
 ```{r}
-n_r <- 16
+n <- 16 # sample size
 
+# creating a summary dataset
 RatsLS <- RatsL %>% 
   group_by(Group, Time) %>% 
-  summarise(mean = mean(weight), se = (sd(weight)/sqrt(n_r))) %>% 
+  summarise(mean = mean(weight), se = (sd(weight)/sqrt(n))) %>% 
   ungroup
 
+# plotting the summary
 RatsLS %>% ggplot(
   aes(x = Time, y = mean, shape = Group, col = Group)) +
   geom_line() +
@@ -79,7 +93,9 @@ RatsLS %>% ggplot(
   scale_y_continuous(name = "mean(weight) +/- se(weight)")
 ```
 
-outlier
+The summary graph shows us group averages and their standard errors instead of individuals. This makes the graph the easier to read the bigger the data.
+
+Next, checking for outliers in the data using box plots:
 
 ```{r}
 outlaw_rat <- RatsL %>% 
@@ -95,13 +111,14 @@ outlaw_rat %>% ggplot(
   scale_y_continuous(name = "mean(weight, days 1-64")
 ```
 
-Each group has an outlier? although each group is very different from one another AND with only 16 subjects to begin with it seems nuts to me to remove any data... At least group 2 has an outlier. Let's remove them and replot.
+Seems that each group has an outlier. I'm dubious of removing anything from such a small sample, but I'm gonna do it anyway for practice and replot.
 
 ```{r}
-outlaw_rat1 <- outlaw_rat %>% filter(mean < 550, 
-                                    mean > 240,
-                                    mean > 500 | Group != 3)
-
+outlaw_rat1 <- outlaw_rat %>% filter(mean > 240, # group 1 outlier
+                                     mean < 550, # group 2 outlier
+                                     mean > 500 | Group != 3) 
+                                                 # group 3 outlier
+# plotting
 outlaw_rat1 %>% ggplot(
   aes(x = Group, y = mean)) +
   geom_boxplot() +
@@ -109,28 +126,43 @@ outlaw_rat1 %>% ggplot(
   scale_y_continuous(name = "mean(weight, days 1-64")
 ```
 
-t-test
+Yay, done. Now, it's obvious enough just from the graphs that these groups of rats have very different weight, but let's test that quantitatively anyway for the fun of it. Performing a pairwise t-test:
 
 ```{r}
-# t.test(mean ~ Group, data = outlaw_rat, var.equal = TRUE) # can't do t-test with 3 groups ofc.. what then?
+library(rstatix)
+outlaw_rat1 %>%
+  pairwise_t_test(mean ~ Group, p.adjust.method = "bonferroni")
 ```
 
+As the test shows, the groups have different weight at amusingly low p-values.
+
+Finally, calculating a linear model for the data:
+
 ```{r}
+# loading the starting weight of the rats
 baseline <- RatsL %>% filter(Time==1) %>% select(weight) %>% as.vector
 
+# adding the baseline weight as a column to a data frame
 outlaw_rat2 <- outlaw_rat %>% 
   mutate(baseline = baseline$weight)
 
+# calculating a linear model for the data
 rat_fit <- lm(mean ~ baseline + Group, data = outlaw_rat2)
 
 rat_fit %>% anova
 ```
 
+The ANOVA table shows us that the baseline weight is strongly related to the later weight measurements, whereas with a p-value of about 0.076 we cannot be very confident in saying that the groups had a difference in weight gain.
+
 ### bprsL
+
+A reminder of the variables in the data:
 
 ```{r}
 str(bprsL)
 ```
+
+Okay, time to plot it:
 
 ```{r}
 bprsL %>% ggplot(
@@ -141,7 +173,9 @@ bprsL %>% ggplot(
   scale_x_continuous(breaks = seq(0, 8, 1))
 ```
 
-liinear model
+Both treatment groups seem to have a linear reduction in bprs scores during the eight week treatment period. I wonder what a placebo group would look like.
+
+Fitting a linear model:
 
 ```{r}
 bprs_reg <- lm(bprs ~ week + treatment, bprsL)
