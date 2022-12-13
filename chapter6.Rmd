@@ -182,7 +182,7 @@ bprs_reg <- lm(bprs ~ week + treatment, bprsL)
 bprs_reg %>% summary
 ```
 
-random intercept model
+Fitting a random intercept model:
 
 ```{r}
 library(lme4)
@@ -190,13 +190,18 @@ bprs_ref <- lmer(bprs ~ week + treatment + (1 | subject), bprsL, REML = FALSE)
 bprs_ref
 ```
 
+With two random intercepts:
+
 ```{r}
 bprs_ref1 <- lmer(bprs ~ week + treatment + (week | subject), bprsL, REML = FALSE)
 bprs_ref1 %>% summary
 
 anova(bprs_ref1, bprs_ref)
-
 ```
+
+The standard error for treatment was lower in this linear mixed model compared to the linear regression model.
+
+Trying *week + treatment* to *week \* treatment*
 
 ```{r}
 
@@ -204,17 +209,20 @@ bprs_ref2 <- lmer(bprs ~ week * treatment + (week | subject), bprsL, REML = FALS
 bprs_ref2 %>% summary
 
 anova(bprs_ref2, bprs_ref1)
-
 ```
 
-```{r}
-bprsL$fitted <- fitted(bprs_ref2) 
+In this one the standard error was again larger. None of these model show evidence that there would be a difference in bprs score between the treatment groups.
 
-bprsL %>% ggplot(
-  aes(x = week, y = fitted, group = subject)) +
+Plotting the model with the smallest standard error:
+
+```{r}
+bprsL$fitted <- fitted(bprs_ref1) 
+
+bprsL %>% ggplot(aes(x = week, y = fitted, group = subject)) +
   geom_line(aes(col = subject)) +
   facet_grid(. ~ treatment, labeller = label_both) +
   theme(legend.position = "none") +
   scale_x_continuous(breaks = seq(0, 8, 1))
-
 ```
+
+As can be seen from these fitted plots, it's hard to even see difference between them (I'm not lying there really is some if you look suuuper closely).
